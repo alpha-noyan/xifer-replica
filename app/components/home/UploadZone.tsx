@@ -2,6 +2,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useImageStore } from "@/lib/store/imageStore";
 import { useDropzone } from "react-dropzone";
 import {
   UploadCloud,
@@ -24,6 +26,8 @@ const MAX_FILES = 10;
 export default function UploadZone() {
   const [images, setImages] = useState<ImageFile[]>([]);
   const [error, setError] = useState("");
+  const router = useRouter()
+  const setStoreImages = useImageStore((state)=>state.setImages);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -91,12 +95,9 @@ export default function UploadZone() {
     if (!images.length) return;
 
     // Backend integration will be added later.
-    console.log(
-      "Selected files:",
-      images.map((image) => image.file)
-    );
+    setStoreImages(images);
+  router.push("/editor");
 
-    alert(`${images.length} images ready for processing!`);
   };
 
   return (
