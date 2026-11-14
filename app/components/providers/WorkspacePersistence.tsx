@@ -12,7 +12,6 @@ export default function WorkspacePersistence() {
   useEffect(() => {
     let active = true;
     let timeout: ReturnType<typeof setTimeout> | undefined;
-
     let unsubscribe: (() => void) | undefined;
 
     async function initialize() {
@@ -37,12 +36,14 @@ export default function WorkspacePersistence() {
           useImageStore.getState().hydrateWorkspace(
             images,
             selectedImageId,
-            saved.metadataByImageId ?? {}
+            saved.metadataByImageId ?? {},
+            saved.draftValuesByImageId ?? {}
           );
         } else {
           useImageStore.getState().hydrateWorkspace(
             [],
             null,
+            {},
             {}
           );
         }
@@ -63,6 +64,7 @@ export default function WorkspacePersistence() {
                 })),
                 selectedImageId: state.selectedImageId,
                 metadataByImageId: state.metadataByImageId,
+                draftValuesByImageId: state.draftValuesByImageId,
               });
             } catch (error) {
               console.error("Workspace save failed:", error);
@@ -76,6 +78,7 @@ export default function WorkspacePersistence() {
           useImageStore.getState().hydrateWorkspace(
             [],
             null,
+            {},
             {}
           );
         }

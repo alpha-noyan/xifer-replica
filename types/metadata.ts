@@ -3,6 +3,7 @@ export interface ImageMetadata {
   fileName: string;
   fileSize: number;
   mimeType: string;
+
   width?: number;
   height?: number;
 
@@ -20,12 +21,12 @@ export interface ImageMetadata {
   longitude?: number;
   altitude?: number;
 
-  // Editable descriptive and copyright fields
   title?: string;
   description?: string;
   author?: string;
   copyright?: string;
   keywords?: string;
 
+  // Complete metadata returned by ExifTool
   raw: Record<string, unknown>;
 }

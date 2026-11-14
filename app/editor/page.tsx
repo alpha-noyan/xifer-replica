@@ -61,11 +61,11 @@ export default function EditorPage() {
 
           <MetadataTabs />
         </div>
-        {selectedImage && (
+        {/* {selectedImage && (
           <div className="mt-8">
             <MetadataBrowser key={selectedImage.id} file={selectedImage.file} />
           </div>
-        )}
+        )} */}
       </div>
     </main>
   );

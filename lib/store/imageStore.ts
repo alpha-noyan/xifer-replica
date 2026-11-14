@@ -8,19 +8,24 @@ export interface ImageFile {
   preview: string;
 }
 
+export type ImageDraft = Record<string, string>;
+
 interface ImageStore {
   images: ImageFile[];
   selectedImageId: string | null;
   metadataByImageId: Record<string, ImageMetadata>;
 
-  // Indicates whether IndexedDB restoration has finished
+  // Unsaved metadata drafts, separated by image ID
+  draftValuesByImageId: Record<string, ImageDraft>;
+
   isHydrated: boolean;
 
   // Restore saved workspace
   hydrateWorkspace: (
     images: ImageFile[],
     selectedImageId: string | null,
-    metadataByImageId: Record<string, ImageMetadata>
+    metadataByImageId: Record<string, ImageMetadata>,
+    draftValuesByImageId?: Record<string, ImageDraft>
   ) => void;
 
   // Image actions
@@ -36,12 +41,22 @@ interface ImageStore {
     id: string,
     changes: Partial<ImageMetadata>
   ) => void;
+
+  // Draft actions
+  updateImageDraft: (
+    id: string,
+    key: string,
+    value: string
+  ) => void;
+  setImageDraft: (id: string, draft: ImageDraft) => void;
+  resetImageDraft: (id: string) => void;
 }
 
 export const useImageStore = create<ImageStore>((set) => ({
   images: [],
   selectedImageId: null,
   metadataByImageId: {},
+  draftValuesByImageId: {},
 
   isHydrated: false,
 
@@ -49,19 +64,20 @@ export const useImageStore = create<ImageStore>((set) => ({
   hydrateWorkspace: (
     images,
     selectedImageId,
-    metadataByImageId
+    metadataByImageId,
+    draftValuesByImageId = {}
   ) =>
     set({
       images,
       selectedImageId,
       metadataByImageId,
+      draftValuesByImageId,
       isHydrated: true,
     }),
 
   // Add or replace uploaded images
   setImages: (images) =>
     set((state) => {
-      // Release old preview URLs
       state.images.forEach((image) => {
         URL.revokeObjectURL(image.preview);
       });
@@ -70,36 +86,47 @@ export const useImageStore = create<ImageStore>((set) => ({
         images,
         selectedImageId: images[0]?.id ?? null,
         metadataByImageId: {},
+        draftValuesByImageId: {},
       };
     }),
 
   // Select an image
   selectImage: (id) =>
     set((state) => ({
-      selectedImageId: state.images.some((image) => image.id === id)
+      selectedImageId: state.images.some(
+        (image) => image.id === id
+      )
         ? id
         : state.selectedImageId,
     })),
 
-  // Remove an image and its metadata
+  // Remove an image and its metadata/drafts
   removeImage: (id) =>
     set((state) => {
-      const image = state.images.find((item) => item.id === id);
+      const image = state.images.find(
+        (item) => item.id === id
+      );
 
       if (image) {
         URL.revokeObjectURL(image.preview);
       }
 
-      const images = state.images.filter((item) => item.id !== id);
+      const images = state.images.filter(
+        (item) => item.id !== id
+      );
+
+      const { [id]: removedMetadata, ...remainingMetadata } =
+        state.metadataByImageId;
 
       const {
-        [id]: removedMetadata,
-        ...remainingMetadata
-      } = state.metadataByImageId;
+        [id]: removedDraft,
+        ...remainingDrafts
+      } = state.draftValuesByImageId;
 
       return {
         images,
         metadataByImageId: remainingMetadata,
+        draftValuesByImageId: remainingDrafts,
         selectedImageId:
           state.selectedImageId === id
             ? images[0]?.id ?? null
@@ -107,7 +134,7 @@ export const useImageStore = create<ImageStore>((set) => ({
       };
     }),
 
-  // Remove all images and metadata
+  // Remove all images, metadata and drafts
   clearImages: () => {
     set((state) => {
       state.images.forEach((image) => {
@@ -118,39 +145,48 @@ export const useImageStore = create<ImageStore>((set) => ({
         images: [],
         selectedImageId: null,
         metadataByImageId: {},
+        draftValuesByImageId: {},
       };
     });
   },
 
   // Replace an image file after metadata editing
-updateImageFile: (id, file) =>
-  set((state) => {
-    const existingImage = state.images.find(
-      (image) => image.id === id
-    );
+  updateImageFile: (id, file) =>
+    set((state) => {
+      const existingImage = state.images.find(
+        (image) => image.id === id
+      );
 
-    if (!existingImage) return state;
+      if (!existingImage) return state;
 
-    URL.revokeObjectURL(existingImage.preview);
+      URL.revokeObjectURL(existingImage.preview);
 
-    return {
-      images: state.images.map((image) =>
-        image.id === id
-          ? {
-              ...image,
-              file,
-              preview: URL.createObjectURL(file),
-            }
-          : image
-      ),
+      const {
+        [id]: removedDraft,
+        ...remainingDrafts
+      } = state.draftValuesByImageId;
 
-      metadataByImageId: Object.fromEntries(
-        Object.entries(state.metadataByImageId).filter(
-          ([imageId]) => imageId !== id
-        )
-      ),
-    };
-  }),
+      return {
+        images: state.images.map((image) =>
+          image.id === id
+            ? {
+                ...image,
+                file,
+                preview: URL.createObjectURL(file),
+              }
+            : image
+        ),
+
+        metadataByImageId: Object.fromEntries(
+          Object.entries(state.metadataByImageId).filter(
+            ([imageId]) => imageId !== id
+          )
+        ),
+
+        // Clear drafts for the image whose file was saved
+        draftValuesByImageId: remainingDrafts,
+      };
+    }),
 
   // Save extracted metadata for an image
   setImageMetadata: (id, metadata) =>
@@ -176,6 +212,40 @@ updateImageFile: (id, file) =>
             ...changes,
           },
         },
+      };
+    }),
+
+  // Update one draft field for a specific image
+  updateImageDraft: (id, key, value) =>
+    set((state) => ({
+      draftValuesByImageId: {
+        ...state.draftValuesByImageId,
+        [id]: {
+          ...(state.draftValuesByImageId[id] ?? {}),
+          [key]: value,
+        },
+      },
+    })),
+
+  // Set all draft fields for a specific image
+  setImageDraft: (id, draft) =>
+    set((state) => ({
+      draftValuesByImageId: {
+        ...state.draftValuesByImageId,
+        [id]: draft,
+      },
+    })),
+
+  // Reset drafts for a specific image only
+  resetImageDraft: (id) =>
+    set((state) => {
+      const {
+        [id]: removedDraft,
+        ...remainingDrafts
+      } = state.draftValuesByImageId;
+
+      return {
+        draftValuesByImageId: remainingDrafts,
       };
     }),
 }));

@@ -195,6 +195,12 @@ export default function MetadataBrowser({ file }: MetadataBrowserProps) {
     );
   }
 
+  function handleResetChanges() {
+  setEditedValues({});
+  setSaveError("");
+  setSaveSuccess("");
+}
+
   if (error) {
     return (
       <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
@@ -234,6 +240,14 @@ export default function MetadataBrowser({ file }: MetadataBrowserProps) {
         >
           {saving ? "Saving..." : "Save & Download"}
         </button>
+        <button
+  type="button"
+  onClick={handleResetChanges}
+  disabled={saving || Object.keys(editedValues).length === 0}
+  className="rounded-lg border border-white/10 bg-[#151923] px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+>
+  Reset Changes
+</button>
       </div>
 
       {saveError && (
