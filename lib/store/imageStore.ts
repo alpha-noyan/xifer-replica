@@ -24,6 +24,7 @@ interface ImageStore {
   ) => void;
 
   // Image actions
+  updateImageFile: (id: string, file: File) => void;
   setImages: (images: ImageFile[]) => void;
   selectImage: (id: string) => void;
   removeImage: (id: string) => void;
@@ -120,6 +121,36 @@ export const useImageStore = create<ImageStore>((set) => ({
       };
     });
   },
+
+  // Replace an image file after metadata editing
+updateImageFile: (id, file) =>
+  set((state) => {
+    const existingImage = state.images.find(
+      (image) => image.id === id
+    );
+
+    if (!existingImage) return state;
+
+    URL.revokeObjectURL(existingImage.preview);
+
+    return {
+      images: state.images.map((image) =>
+        image.id === id
+          ? {
+              ...image,
+              file,
+              preview: URL.createObjectURL(file),
+            }
+          : image
+      ),
+
+      metadataByImageId: Object.fromEntries(
+        Object.entries(state.metadataByImageId).filter(
+          ([imageId]) => imageId !== id
+        )
+      ),
+    };
+  }),
 
   // Save extracted metadata for an image
   setImageMetadata: (id, metadata) =>

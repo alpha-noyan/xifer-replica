@@ -25,9 +25,9 @@ const testMetadataWriting = async () => {
   try {
     // Write test GPS coordinates into a new image file.
     const modifiedFile = await writeImageMetadata(file, {
-      GPSLatitude: 33.6844,
-      GPSLongitude: 73.0479,
-    });
+  "EXIF:Artist": "Hammad Baseer",
+  "XMP:Title": "XiferStudio Test",
+});
 
     // Read all metadata from the modified image.
     const allMetadata = await readAllMetadata(modifiedFile);
