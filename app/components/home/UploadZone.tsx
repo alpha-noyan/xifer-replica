@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useCallback, useState } from "react";
@@ -26,8 +25,10 @@ const MAX_FILES = 10;
 export default function UploadZone() {
   const [images, setImages] = useState<ImageFile[]>([]);
   const [error, setError] = useState("");
-  const router = useRouter()
-  const setStoreImages = useImageStore((state)=>state.setImages);
+  const router = useRouter();
+  const savedImages = useImageStore((state) => state.images);
+  const isHydrated = useImageStore((state) => state.isHydrated);
+  const setStoreImages = useImageStore((state) => state.setImages);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -50,25 +51,21 @@ export default function UploadZone() {
 
       setImages((prev) => [...prev, ...newImages]);
     },
-    [images]
+    [images],
   );
 
-  const {
-    getRootProps,
-    getInputProps,
-    isDragActive,
-    fileRejections,
-  } = useDropzone({
-    onDrop,
-    accept: {
-      "image/jpeg": [".jpg", ".jpeg"],
-      "image/png": [".png"],
-      "image/webp": [".webp"],
-    },
-    maxSize: MAX_FILE_SIZE,
-    maxFiles: MAX_FILES,
-    multiple: true,
-  });
+  const { getRootProps, getInputProps, isDragActive, fileRejections } =
+    useDropzone({
+      onDrop,
+      accept: {
+        "image/jpeg": [".jpg", ".jpeg"],
+        "image/png": [".png"],
+        "image/webp": [".webp"],
+      },
+      maxSize: MAX_FILE_SIZE,
+      maxFiles: MAX_FILES,
+      multiple: true,
+    });
 
   const removeImage = (id: string) => {
     setImages((prev) => {
@@ -96,17 +93,22 @@ export default function UploadZone() {
 
     // Backend integration will be added later.
     setStoreImages(images);
-  router.push("/editor");
-
+    router.push("/editor");
   };
 
   return (
     <section id="upload" className="mx-auto max-w-6xl px-6 pb-24">
+      {isHydrated && savedImages.length > 0 && (
+        <button
+          onClick={() => router.push("/editor")}
+          className="mt-4 rounded-lg border border-blue-500/30 bg-blue-500/10 px-5 py-3 text-sm font-medium text-blue-300 hover:bg-blue-500/20"
+        >
+          Resume Previous Session ({savedImages.length} images)
+        </button>
+      )}
 
       <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold">
-          Upload Your Images
-        </h2>
+        <h2 className="text-3xl font-bold">Upload Your Images</h2>
 
         <p className="mt-3 text-gray-400">
           Start by selecting the photos you want to edit.
@@ -150,22 +152,18 @@ export default function UploadZone() {
 
       {fileRejections.length > 0 && (
         <p className="mt-4 text-sm text-red-400">
-          Some files were rejected. Only JPG, PNG and WebP images up to 25 MB are allowed.
+          Some files were rejected. Only JPG, PNG and WebP images up to 25 MB
+          are allowed.
         </p>
       )}
 
-      {error && (
-        <p className="mt-4 text-sm text-red-400">{error}</p>
-      )}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
       {images.length > 0 && (
         <div className="mt-10">
-
           <div className="mb-5 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold">
-                Selected Images
-              </h3>
+              <h3 className="text-lg font-semibold">Selected Images</h3>
 
               <p className="text-sm text-gray-400">
                 {images.length} of {MAX_FILES} images
@@ -221,9 +219,7 @@ export default function UploadZone() {
               <CheckCircle2 className="text-green-400" size={22} />
 
               <div>
-                <p className="text-sm font-semibold">
-                  Images ready
-                </p>
+                <p className="text-sm font-semibold">Images ready</p>
 
                 <p className="text-xs text-gray-400">
                   Your images are ready for metadata processing.
@@ -238,10 +234,8 @@ export default function UploadZone() {
               Continue to Editor
             </button>
           </div>
-
         </div>
       )}
-
     </section>
   );
 }

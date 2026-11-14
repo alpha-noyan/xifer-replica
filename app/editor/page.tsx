@@ -15,17 +15,25 @@ import GPSGeotagging from "../components/editor/GPSGeotagging";
 export default function EditorPage() {
   const router = useRouter();
 
+  const isHydrated = useImageStore(
+  (state) => state.isHydrated
+);
+
   const images = useImageStore((state) => state.images);
 
   useEffect(() => {
-    if (images.length === 0) {
-      router.replace("/");
-    }
-  }, [images.length, router]);
-
-  if (images.length === 0) {
-    return null;
+  if (isHydrated && images.length === 0) {
+    router.replace("/");
   }
+}, [isHydrated, images.length, router]);
+
+  if (!isHydrated || images.length === 0) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#0b0d12] text-gray-400">
+      Restoring your workspace...
+    </div>
+  );
+}
 
   return (
     <main className="min-h-screen bg-[#0b0d12] text-white">
