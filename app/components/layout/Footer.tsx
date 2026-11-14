@@ -16,7 +16,7 @@ export default async function Footer() {
               </div>
 
               <span className="text-xl font-bold">
-                Xifer<span className="text-blue-500">Studio</span>
+                Sysinn's<span className="text-blue-500">Xifer</span>
               </span>
             </Link>
 

@@ -13,7 +13,7 @@ export default function Navbar() {
           </div>
 
           <span className="text-xl font-bold">
-            Sysinn's <span className="text-blue-500">Studio</span>
+            Sysinn's <span className="text-blue-500">Xifer</span>
           </span>
         </Link>
 
