@@ -153,24 +153,32 @@ export default function MetadataTabs() {
     [metadata?.raw],
   );
 
-  // Initialize drafts whenever the selected image or its metadata changes.
-  // Initialize drafts whenever the selected image or its metadata changes.
-  // Initialize drafts for the selected image only.
-  // Preserve existing drafts when switching between images.
   useEffect(() => {
-    if (!selectedImageId) return;
+  // Wait until metadata has actually been extracted.
+  if (!selectedImageId || !metadata?.raw) return;
 
-    if (draftValuesByImageId[selectedImageId]) return;
+  const existingDraft = draftValuesByImageId[selectedImageId];
 
-    const originalValues = Object.fromEntries(
-      fields.map((field) => [
-        field.key,
-        formatInputValue(field.defaultValue, field.dateType),
-      ]),
-    );
+  // Preserve existing drafts, but ignore empty drafts created prematurely.
+  if (existingDraft && Object.keys(existingDraft).length > 0) {
+    return;
+  }
 
-    setImageDraft(selectedImageId, originalValues);
-  }, [selectedImageId, fields, draftValuesByImageId, setImageDraft]);
+  const originalValues = Object.fromEntries(
+    fields.map((field) => [
+      field.key,
+      formatInputValue(field.defaultValue, field.dateType),
+    ]),
+  );
+
+  setImageDraft(selectedImageId, originalValues);
+}, [
+  selectedImageId,
+  metadata?.raw,
+  fields,
+  draftValuesByImageId,
+  setImageDraft,
+]);
 
   const tabs: Tab[] = [
     "EXIF",
