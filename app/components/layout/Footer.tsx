@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ImageIcon, Github, ArrowUpRight } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 
 export default async function Footer() {
   return (
