@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Replica de Xifer",
-  description: "This app is made by Doctor Rehan Bin Nawaz",
+  description: "Replica de Xifer",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
