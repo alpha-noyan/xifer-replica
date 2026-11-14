@@ -99,42 +99,39 @@ export default function GPSGeotagging() {
     setResults([]);
   };
 
- const useCurrentLocation = () => {
-  if (!navigator.geolocation) {
-    setError("Geolocation is not supported by your browser.");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    (location) => {
-      // Update latitude and longitude
-      updatePosition([
-        location.coords.latitude,
-        location.coords.longitude,
-      ]);
-
-      // Update altitude in the selected image's metadata
-      if (selectedImageId) {
-        updateImageMetadata(selectedImageId, {
-          altitude: location.coords.altitude ?? undefined,
-        });
-      }
-
-      setError("");
-    },
-    () => {
-      setError("Unable to access your current location.");
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by your browser.");
+      return;
     }
-  );
-};
+
+    navigator.geolocation.getCurrentPosition(
+      (location) => {
+        // Update latitude and longitude
+        updatePosition([location.coords.latitude, location.coords.longitude]);
+
+        // Update altitude in the selected image's metadata
+        if (selectedImageId) {
+          updateImageMetadata(selectedImageId, {
+            altitude: location.coords.altitude ?? undefined,
+          });
+        }
+
+        setError("");
+      },
+      () => {
+        setError("Unable to access your current location.");
+      },
+    );
+  };
 
   const updateCoordinate = (index: 0 | 1, value: string) => {
+    const next: [number, number] = [...position];
+
     if (value.trim() === "" || value === "-") {
-      setPosition((current) => {
-        const next: [number, number] = [...current];
-        next[index] = 0;
-        return next;
-      });
+      next[index] = 0;
+      updatePosition(next);
+      setSelectedPlace("");
       return;
     }
 
@@ -143,24 +140,18 @@ export default function GPSGeotagging() {
     if (!Number.isFinite(number)) return;
 
     const limit = index === 0 ? 90 : 180;
+
     if (number < -limit || number > limit) return;
 
-    setPosition((current) => {
-      const next: [number, number] = [...current];
-      next[index] = number;
-      return next;
-    });
+    next[index] = number;
 
+    updatePosition(next);
     setSelectedPlace("");
   };
 
   if (!selectedImageId) {
-  return (
-    <p className="text-sm text-gray-400">
-      Select an image first.
-    </p>
-  );
-}
+    return <p className="text-sm text-gray-400">Select an image first.</p>;
+  }
 
   return (
     <section className="mt-8 rounded-2xl border border-white/10 bg-[#11151e] p-5">
