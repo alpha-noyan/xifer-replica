@@ -16,7 +16,7 @@ export default async function Footer() {
               </div>
 
               <span className="text-xl font-bold">
-                Sysinn's<span className="text-blue-500">Xifer</span>
+                Xifer <span className="text-blue-500">Studio</span>
               </span>
             </Link>
 
@@ -51,7 +51,7 @@ export default async function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col justify-between gap-4 border-t border-white/10 pt-6 text-xs text-gray-500 sm:flex-row">
-          <p>© 2026 Sysinn. All rights reserved.</p>
+          <p>© 2026 NoOne. All rights reserved.</p>
 
           <p>Built for managing digital image metadata.</p>
         </div>

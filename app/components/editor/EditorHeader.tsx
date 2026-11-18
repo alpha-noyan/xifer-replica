@@ -22,7 +22,7 @@ export default function EditorHeader() {
 
           <div>
             <h1 className="text-lg font-bold">
-              Sysinn's <span className="text-blue-500">Xifer</span>
+              Xifer <span className="text-blue-500">Studio</span>
             </h1>
             <p className="text-xs text-gray-500">
               Image Metadata Editor
