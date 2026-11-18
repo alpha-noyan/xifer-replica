@@ -102,22 +102,34 @@ export const metadataSchema: MetadataField[] = Object.entries(groups).flatMap(
     }))
 );
 
-function getDateType(key: string):
-  | "date"
-  | "time"
-  | "datetime-local"
-  | undefined {
+
+function getDateType(
+  key: string
+): "date" | "time" | "datetime-local" | undefined {
   const name = key.split(":")[1].toLowerCase();
 
-  if (
-    name.includes("datetime") ||
-    name.includes("datecreated") ||
-    name.includes("photodate")
-  ) {
+  // Fields containing both date and time.
+  const datetimeFields = [
+    "modifydate",
+    "createdate",
+    "datetimeoriginal",
+    "filemodifydate",
+    "fileaccessdate",
+    "fileinodechangedate",
+    "datecreated",
+    "firstphotodate",
+    "lastphotodate",
+  ];
+
+  if (datetimeFields.includes(name)) {
     return "datetime-local";
   }
 
-  if (name.includes("datestamp") || name.includes("date")) {
+  // Date-only fields.
+  if (
+    name.includes("datestamp") ||
+    name === "date"
+  ) {
     return "date";
   }
 
@@ -127,6 +139,7 @@ function getDateType(key: string):
 
   return undefined;
 }
+
 
 export function buildMetadataFields(
   raw: Record<string, unknown>
