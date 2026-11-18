@@ -44,6 +44,7 @@ const groups: Record<string, string[]> = {
     "EXIF:ResolutionUnit",
     "EXIF:ModifyDate",
     "EXIF:Artist",
+    "EXIF:Copyright",
     "EXIF:YCbCrPositioning",
     "EXIF:ExifVersion",
     "EXIF:DateTimeOriginal",
